@@ -1,7 +1,14 @@
+# ERD — Imobiliaria (MySQL)
+
+> Diagrama lógico gerado a partir do script **MySQL Workbench** enviado.  
+> Abra este `.md` no GitHub (ou outro renderer) para visualizar o **Mermaid ER diagram**.
+
+---
+
+## 📦 Tabelas & Relacionamentos (Mermaid)
+
+```mermaid
 erDiagram
-  %% =========================
-  %% RELACIONAMENTOS (CARDINALIDADES)
-  %% =========================
   TIPO_ENDERECO ||--o{ ENDERECO : "classifica"
   REGIAO        ||--o{ ESTADO   : "contém"
   ESTADO        ||--o{ MUNICIPIO: "contém"
@@ -35,9 +42,6 @@ erDiagram
   ACESSO_TIPO ||--o{ ACESSOS     : "usa"
   CONTATO     ||--o{ ACESSOS     : "dono"
 
-  %% =========================
-  %% ENTIDADES E CAMPOS
-  %% =========================
   PROFISSOES {
     int id_prof PK
     varchar nome_prof
@@ -86,7 +90,7 @@ erDiagram
   }
 
   CONTATO {
-    int id_contato PK  %% (MySQL: `id contato`)
+    int id_contato PK
     varchar contato
     varchar email
   }
@@ -99,14 +103,14 @@ erDiagram
     int municipio_id PK, FK
     int municipio_estado_id PK, FK
     int municipio_estado_regiao_id PK, FK
-    int contato_id_contato PK, FK  %% (MySQL: `contato_id contato`)
+    int contato_id_contato PK, FK
     varchar nome
     varchar sobrenome
     varchar obs
     varchar complemento
   }
 
-  CONTRUTORA {  %% (MySQL: `contrutora`)
+  CONTRUTORA {
     int id_contrutora PK
     varchar nome_const
   }
@@ -131,7 +135,7 @@ erDiagram
     varchar desc_cond_imovel
   }
 
-  SITUACAO_IMOVEL {  %% (MySQL: `situaçao_imovel`)
+  SITUACAO_IMOVEL {
     int id_situacao_imovel PK
     int tipo_imovel_id_tipo_imovel PK, FK
     int tipo_imovel_contrutora_id_contrutora PK, FK
@@ -159,7 +163,7 @@ erDiagram
     int endereco_id_endereco PK, FK
     int endereco_tipo_endereco_id_tipo_endereco PK, FK
     int identifica_id_identifica PK, FK
-    int contato_id_contato PK, FK   %% (MySQL: `contato_id contato`)
+    int contato_id_contato PK, FK
     varchar imobiliaria
     varchar proprietario
   }
@@ -178,8 +182,8 @@ erDiagram
     varchar desc_acab_imovel
   }
 
-  CONTATO_ORIGEM {  %% (MySQL: `contato_has_origem_contato`)
-    int contato_id_contato PK, FK      %% (MySQL: `contato_id contato`)
+  CONTATO_ORIGEM {
+    int contato_id_contato PK, FK
     int origem_contato_id_origem_contato PK, FK
     varchar tipo_contato
     varchar tipo_fone
@@ -203,12 +207,12 @@ erDiagram
     int id_acessos PK
     int acesso_tipo_id_acesso_tipo PK, FK
     int acesso_tipo_perm_system_id_perm_system PK, FK
-    int contato_id_contato PK, FK  %% (MySQL: `contato_id contato`)
+    int contato_id_contato PK, FK
     varchar login
     varchar senha
   }
 
-  PESSOA_IDENTIFICA {  %% (MySQL: `pessoa_has_identifica`)
+  PESSOA_IDENTIFICA {
     int pessoa_id_pessoa PK, FK
     int pessoa_profissoes_id_prof PK, FK
     int identifica_id_identifica PK, FK
@@ -228,3 +232,10 @@ erDiagram
     varchar latitude
     varchar logintude
   }
+```
+  
+---
+
+## 🧭 Observações
+- **Mapeamento fiel do SQL**; normalizado nomes apenas para evitar espaços/acentos no diagrama.
+- **PKs compostas** marcadas nas entidades dependentes (ex.: `PESSOA`, `IMOBILIARIA`, `TIPO_IMOVEL` e derivadas).
