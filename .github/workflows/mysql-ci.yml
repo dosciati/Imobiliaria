@@ -1,0 +1,43 @@
+name: mysql-schema-check
+
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for MySQL
+        run: |
+          for i in `seq 1 30`; do
+            (echo "SELECT 1" | mysql -h 127.0.0.1 -uroot -proot) && break
+            sleep 2
+          done
+
+      - name: Create database
+        run: echo "CREATE DATABASE IF NOT EXISTS bd_imobiliaria;" | mysql -h 127.0.0.1 -uroot -proot
+
+      - name: Load schema & seeds
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot bd_imobiliaria < sql/init/01_schema.sql
+          mysql -h 127.0.0.1 -uroot -proot bd_imobiliaria < sql/init/02_seed_minimo.sql
+
+      - name: Smoke test
+        run: |
+          echo "SELECT COUNT(*)>0 FROM Regiao;" | mysql -h 127.0.0.1 -uroot -proot bd_imobiliaria

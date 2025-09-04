@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  db:
+    image: mysql:8.0
+    container_name: imob-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bd_imobiliaria
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app
+    ports:
+      - "3306:3306"
+    volumes:
+      # tudo que estiver aqui é executado automaticamente na primeira subida
+      - ./sql/init:/docker-entrypoint-initdb.d
+    command: ["--default-authentication-plugin=mysql_native_password"]
+  adminer:
+    image: adminer:latest
+    container_name: imob-adminer
+    ports:
+      - "8080:8080"
