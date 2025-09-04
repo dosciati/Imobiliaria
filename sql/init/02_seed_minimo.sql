@@ -1,63 +1,75 @@
 USE bd_imobiliaria;
 
--- Regiões, Estado e Município (respeitando PKs compostas)
-INSERT INTO Regiao (Nome) VALUES ('Sul');                       -- Id = 1
-INSERT INTO Estado (CodigoUf, Nome, Uf, Regiao_Id)
-VALUES (43, 'Rio Grande do Sul', 'RS', 1);                      -- Id = 1, Regiao_Id = 1
-INSERT INTO Municipio (Codigo, Nome, Estado_Id, Estado_Regiao_Id)
-VALUES (4314902, 'Porto Alegre', 1, 1);                         -- Id = 1, Estado_Id = 1, Estado_Regiao_Id = 1
+-- ============================
+-- Localização administrativa
+-- ============================
+INSERT INTO regiao (nome) VALUES ('Sul');                                  -- id = 1
 
--- Bairro (depende de Município)
-INSERT INTO Bairro (Codigo, Nome, Municipio_Id, Municipio_Estado_Id, Municipio_Estado_Regiao_Id)
-VALUES ('90000', 'Centro', 1, 1, 1);                            -- Id = 1,...
+INSERT INTO estado (codigo_uf, nome, uf, regiao_id)
+VALUES (43, 'Rio Grande do Sul', 'RS', 1);                                 -- id = 1
 
--- Tipos de Endereço e Endereço (PK composta com tipo_endereco)
-INSERT INTO tipo_endereco (tipo_endereco) VALUES ('Residencial'); -- id_tipo_endereco = 1
-INSERT INTO endereco (rua, num, tipo_endereco_id_tipo_endereco) VALUES ('Rua Exemplo', '123', 1);
--- assumindo id_endereco = 1 pelo autoincrement
+INSERT INTO municipio (codigo, nome, estado_id)
+VALUES (4314902, 'Porto Alegre', 1);                                       -- id = 1
 
--- Profissão
-INSERT INTO profissoes (nome_prof) VALUES ('Analista de Sistemas'); -- id_prof = 1
+INSERT INTO bairro (codigo, nome, municipio_id)
+VALUES ('90000', 'Centro', 1);                                             -- id = 1
 
--- Contato (o campo tem espaço no nome na sua definição: `id contato`)
-INSERT INTO contato (contato, email) VALUES ('(51) 90000-0000', 'contato@exemplo.com');
--- assumindo `id contato` = 1
+-- ============================
+-- Tipos / Endereço / Profissão
+-- ============================
+INSERT INTO tipo_endereco (nome) VALUES ('Residencial');                   -- id = 1
 
--- Pessoa (requer várias FKs: profissão, endereço, município e contato)
-INSERT INTO pessoa (
-  nome, sobrenome, obs, complemento,
-  profissoes_id_prof,
-  endereco_id_endereco, endereco_tipo_endereco_id_tipo_endereco,
-  Municipio_Id, Municipio_Estado_Id, Municipio_Estado_Regiao_Id,
-  `contato_id contato`
-) VALUES (
-  'André', 'Dosciati', 'registro de teste', 'apto 101',
-  1,
-  1, 1,
-  1, 1, 1,
-  1
-);
--- id_pessoa = 1
+INSERT INTO endereco (rua, numero, complemento, tipo_endereco_id, bairro_id)
+VALUES ('Rua Exemplo', '123', 'apto 101', 1, 1);                           -- id = 1
 
--- Tabelas do domínio de imóvel
-INSERT INTO contrutora (nome_const) VALUES ('Construtora Exemplo');               -- id_contrutora = 1
-INSERT INTO finalidade_busca (desc_finalidade) VALUES ('Moradia');                -- idfinalidade_busca = 1
+INSERT INTO profissao (nome) VALUES ('Analista de Sistemas');              -- id = 1
 
-INSERT INTO tipo_imovel (desc, contrutora_id_contrutora, finalidade_busca_idfinalidade_busca)
-VALUES ('Apartamento', 1, 1);                                                    -- id_tipo_imovel = 1
+-- ============================
+-- Contato e origem do contato (opcional)
+-- ============================
+INSERT INTO contato (nome, email)
+VALUES ('Contato Principal', 'contato@exemplo.com');                       -- id_contato = 1
 
--- Localização (depende de tipo_imovel e suas chaves compostas)
-INSERT INTO localizacao (
-  topografia, posicao, orien_solar, latitude, logintude,
-  tipo_imovel_id_tipo_imovel, tipo_imovel_contrutora_id_contrutora, tipo_imovel_finalidade_busca_idfinalidade_busca
-) VALUES (
-  'Plana', 'Frente', 'Norte', '-30.0346', '-51.2177',
-  1, 1, 1
-);
+INSERT INTO origem_contato (origem) VALUES ('Indicação');                  -- id = 1
+INSERT INTO contato_origem (contato_id, origem_contato_id, tipo_contato, tipo_fone, nome_recado)
+VALUES (1, 1, 'Telefone', 'Celular', 'André');
 
--- Identificação e vínculo pessoa-identificação
-INSERT INTO identifica (rg, creci, dat_nasc, cpf_cnpj, insc_munic)
-VALUES ('123456789', NULL, '1988-01-01', '000.000.000-00', NULL);                -- id_identifica = 1
+-- ============================
+-- Pessoa e documentos
+-- ============================
+INSERT INTO pessoa (nome, sobrenome, obs, complemento, profissao_id, endereco_id, municipio_id, contato_id)
+VALUES ('André', 'Dosciati', 'registro de teste', 'apto 101', 1, 1, 1, 1); -- id = 1
 
-INSERT INTO pessoa_has_identifica (pessoa_id_pessoa, pessoa_profissoes_id_prof, identifica_id_identifica, tipo_pessoa, est_civil, conjuge)
-VALUES (1, 1, 1, 'FISICA', 'SOLTEIRO', NULL);
+INSERT INTO documento_identificacao (rg, creci, data_nasc, cpf_cnpj, inscricao_municipal)
+VALUES ('123456789', NULL, '1988-01-01', '00000000000', NULL);             -- id = 1
+
+INSERT INTO pessoa_documento (pessoa_id, documento_identificacao_id, tipo_pessoa, estado_civil, conjuge)
+VALUES (1, 1, 'FISICA', 'SOLTEIRO', NULL);
+
+-- ============================
+-- Domínio imobiliário
+-- ============================
+INSERT INTO construtora (nome)
+VALUES ('Construtora Exemplo');                                            -- id = 1
+
+INSERT INTO finalidade_busca (descricao)
+VALUES ('Moradia');                                                        -- id = 1
+
+INSERT INTO tipo_imovel (descricao, construtora_id, finalidade_busca_id)
+VALUES ('Apartamento', 1, 1);                                             -- id = 1
+
+INSERT INTO localizacao (topografia, posicao, orientacao_solar, latitude, longitude, tipo_imovel_id)
+VALUES ('Plana', 'Frente', 'Norte', -30.0346, -51.2177, 1);
+
+-- ============================
+-- Permissões e acesso (opcional)
+-- ============================
+INSERT INTO permissao_sistema (leitura, escrita, gravacao)
+VALUES (1, 1, 0);                                                          -- id = 1
+
+INSERT INTO tipo_acesso (nome, permissao_sistema_id)
+VALUES ('Admin', 1);                                                       -- id = 1
+
+-- senha deve ser HASH (ex.: bcrypt). Valor abaixo é placeholder.
+INSERT INTO acesso (login, senha, tipo_acesso_id, contato_id)
+VALUES ('admin@example.com', '$2b$12$substitua_pelo_hash_real', 1, 1);
