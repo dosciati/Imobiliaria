@@ -1,7 +1,8 @@
+
 <p align="center">
   <img src="https://img.shields.io/badge/status-em%20desenvolvimento-yellow?style=for-the-badge" alt="Status: em desenvolvimento"/>
-  <img src="https://img.shields.io/badge/stack-SQL-blue?style=for-the-badge" alt="Stack: SQL"/>
-  <img src="https://img.shields.io/badge/domain-Imobiliaria-334155?style=for-the-badge" alt="Domínio: Imobiliária"/>
+  <img src="https://img.shields.io/badge/stack-MySQL-blue?style=for-the-badge" alt="Stack: MySQL"/>
+  <img src="https://img.shields.io/badge/domain-Imobili%C3%A1ria-334155?style=for-the-badge" alt="Domínio: Imobiliária"/>
   <img src="https://img.shields.io/badge/SaaS-modelagem-0ea5e9?style=for-the-badge" alt="SaaS: modelagem"/>
 </p>
 
@@ -9,19 +10,19 @@
 
 > **Objetivo:** disponibilizar uma **modelagem inicial** de banco de dados para um sistema **SaaS de imobiliárias**. O foco é oferecer um ponto de partida limpo e didático para evoluir em **normalização, multitenancy e governança de dados**.
 
-- 📂 Esquema principal: `bd_imobiliaria.sql`  
-- 🧭 Status: **inicial** (em evolução; ajustes de *tenant* planejados)  
+- 📂 Esquema principal: `sql/01_schema.sql`  
+- 🧭 Status: **inicial**, em evolução (multitenancy em roadmap)  
 - 🧪 Ideal para: estudos, POCs e bases de TCC/portfólio
 
 ---
 
 ## 📑 Sumário
+
 - [Visão Geral](#visao-geral)
+- [Estrutura e Padrões](#estrutura-e-padroes)
 - [Como Executar](#como-executar)
-- [Estratégia de Multitenancy (Roadmap)](#estrategia-de-multitenancy-roadmap)
-- [Boas Práticas e Padrões](#boas-praticas-e-padroes)
 - [Consultas de Exemplo](#consultas-de-exemplo)
-- [Roadmap Técnico](#roadmap-tecnico)
+- [Roadmap (inclui Multitenancy)](#roadmap-inclui-multitenancy)
 - [Contribuição](#contribuicao)
 - [Autor](#autor)
 
@@ -30,87 +31,100 @@
 ## 🔎 Visão Geral
 <a id="visao-geral"></a>
 
-Este repositório oferece um **esquema SQL** para o domínio imobiliário (aluguel/venda, contratos, partes envolvidas, etc.).  
-A proposta é ser **claro e extensível**, permitindo evoluir para cenários comuns de multi-empresas (*multi-tenant*), auditoria e relatórios.
+Este repositório oferece um **esquema SQL** para o domínio imobiliário (aluguel/venda, contratos, partes envolvidas, etc.), com foco em simplicidade e extensibilidade.
 
-Sugestões de entidades típicas do domínio (podem variar conforme sua evolução do schema):
+Entidades centrais do domínio (nomes podem variar conforme a evolução do schema):
 
-- **imovel**, **endereco**, **proprietario**, **locatario**, **contrato**, **pagamento**, **manutencao**
-- Entidades de apoio: **usuario**, **perfil**, **permissao**
-- Entidade de isolamento (futuro): **tenant** (ex.: imobiliária/cliente)
+- **profissoes**, **tipo_endereco**, **endereco**, **contato**, **pessoa**
+- **Regiao**, **Estado**, **Municipio**, **Bairro**
+- **contrutora**, **finalidade_busca**, **tipo_imovel**, **localizacao**
+- Tabelas de apoio/segurança: **perm_system**, **acesso_tipo**, **acessos**, **pessoa_has_identifica**, **identifica**
+- (Futuro) **tenant** para isolamento lógico multi-empresa
 
-> Para visualizar o modelo: importe o `.sql` em ferramentas como **DBeaver**, **pgAdmin**, **MySQL Workbench** ou gere um ERD via **dbdiagram.io**.
+> Para visualizar o modelo, importe o `.sql` em ferramentas como **DBeaver**, **MySQL Workbench** ou gere um ERD via **dbdiagram.io**. Diagramas estáticos podem ser adicionados em `docs/erd`.
+
+---
+
+## 🧭 Estrutura e Padrões
+<a id="estrutura-e-padroes"></a>
+
+- **Banco/SGBD:** MySQL 8+
+- **Charset/Collation:** `utf8mb4` / `utf8mb4_unicode_ci`
+- **Convenções**
+  - Tabelas/colunas em `snake_case`
+  - **PKs inteiras autoincrement** (`INT` + `AUTO_INCREMENT`), FKs obrigatórias
+  - **Campos de auditoria** (sugeridos): `created_at`, `updated_at` (ainda não implementados)
+  - **Soft delete** (opcional): `deleted_at`
+- **Índices** otimizados para joins e consultas frequentes (ver `sql/indexes.sql`)
+- **Seeds** para popular dados mínimos (ver `sql/seed.sql`)
 
 ---
 
 ## ⚙️ Como Executar
 <a id="como-executar"></a>
 
-> O arquivo `bd_imobiliaria.sql` contém a estrutura (DDL). Abaixo, exemplos rápidos para **PostgreSQL** e **MySQL/MariaDB**.  
-> Ajuste nomes/usuários/senhas conforme seu ambiente.
+> Os arquivos ficam no diretório `sql/`:
+> - `sql/01_schema.sql` — DDL
+> - `02_seed_minimo.sql` — dados iniciais
+> - `03_indexes.sql` — índices adicionais
 
-### PostgreSQL (local)
+### Opção A — Docker Compose (recomendado)
 ```bash
-# 1) Criar banco
-createdb imobiliaria
+# 1) Subir serviços
+docker compose up -d
 
-# 2) Importar schema
-psql -d imobiliaria -f bd_imobiliaria.sql
+# 2) (Opcional) Acompanhar logs
+docker compose logs -f mysql
+
+# 3) Importar schema + seeds + índices
+docker exec -i mysql \
+  sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1' < sql/01_schema.sql.sql
+
+docker exec -i mysql \
+  sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1 01_schema.sql' < sql/02_seed_minimo.sql
+
+docker exec -i mysql \
+  sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -h127.0.0.1 01_schema.sql' < sql/03_indexes.sql
 ```
 
-### MySQL/MariaDB (local)
-```bash
-# 1) Criar banco
-mysql -u root -p -e "CREATE DATABASE imobiliaria CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+> O workflow de CI usa `127.0.0.1` para conexão MySQL (compatibilidade com GitHub Actions).
 
-# 2) Importar schema
-mysql -u root -p imobiliaria < bd_imobiliaria.sql
+### Opção B — MySQL local
+```bash
+# 1) Criar banco com charset/collation recomendados
+mysql -u root -p -e "CREATE DATABASE 01_schema.sql CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# 2) Importar schema, seed e índices
+mysql -u root -p bd_imobiliaria < sql/01_schema.sql.sql
+mysql -u root -p bd_imobiliaria < sql/02_seed_minimo.sql
+mysql -u root -p bd_imobiliaria < sql/03_indexes.sql
 ```
 
-### Docker (Postgres) — opcional
-```bash
-docker run -d --name pg-imob -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=imobiliaria -p 5432:5432 postgres:16
-# Quando o container estiver pronto:
-docker cp bd_imobiliaria.sql pg-imob:/bd_imobiliaria.sql
-docker exec -it pg-imob psql -U postgres -d imobiliaria -f /bd_imobiliaria.sql
+### Verificação rápida
+```sql
+-- Tabelas essenciais com ao menos 1 linha?
+SELECT 'Regiao' AS tabela, COUNT(*) AS qtd FROM Regiao
+UNION ALL SELECT 'Estado', COUNT(*) FROM Estado
+UNION ALL SELECT 'Municipio', COUNT(*) FROM Municipio
+UNION ALL SELECT 'tipo_endereco', COUNT(*) FROM tipo_endereco
+UNION ALL SELECT 'endereco', COUNT(*) FROM endereco
+UNION ALL SELECT 'profissoes', COUNT(*) FROM profissoes
+UNION ALL SELECT 'contato', COUNT(*) FROM contato
+UNION ALL SELECT 'pessoa', COUNT(*) FROM pessoa
+UNION ALL SELECT 'construtora', COUNT(*) FROM contrutora
+UNION ALL SELECT 'finalidade_busca', COUNT(*) FROM finalidade_busca
+UNION ALL SELECT 'tipo_imovel', COUNT(*) FROM tipo_imovel
+UNION ALL SELECT 'localizacao', COUNT(*) FROM localizacao;
 ```
-
-> *Seeds (opcional):* crie um `scripts/seed_exemplo.sql` com **inserts** fictícios para testes e execute após a importação do schema.
-
----
-
-## 🏷️ Estratégia de Multitenancy (Roadmap)
-<a id="estrategia-de-multitenancy-roadmap"></a>
-
-A evolução natural é suportar **múltiplas imobiliárias/empresas** no mesmo banco (**isolamento lógico**):
-
-- Adicionar **`tenant_id`** nas tabelas de domínio.
-- Garantir **chaves estrangeiras** com `tenant_id` acoplado (ex.: `(id, tenant_id)` como PK composta, ou `tenant_id` + PK simples).
-- Criar **índices** por `tenant_id` e aplicar **políticas de acesso** (ex.: RLS no PostgreSQL) para cada usuário/empresa ver apenas seus dados.
-- Alternativas: **schema por tenant** (isolamento por schema) ou **database por tenant** (isolamento máximo) — com custos/benefícios distintos.
-
----
-
-## 🧭 Boas Práticas e Padrões
-<a id="boas-praticas-e-padroes"></a>
-
-- **Nomes descritivos** para tabelas/colunas (snake_case).
-- **Chaves primárias** inteiras (`BIGSERIAL`/`AUTO_INCREMENT`) ou UUIDs conforme necessidade.
-- **Integridade referencial** (FKs obrigatórias).
-- **Campos de auditoria**: `created_at`, `updated_at`, `created_by`, `updated_by`.
-- **Soft delete** (opcional): `deleted_at` para preservar histórico.
-- **Índices** para consultas frequentes (por `tenant_id`, `status`, `created_at`).
-- **Views** para relatórios (ex.: `vw_contratos_ativos`, `vw_inadimplencia`).
-- **Segurança/PII:** dados pessoais (CPF, e-mail, telefone) devem seguir boas práticas de privacidade e LGPD.
 
 ---
 
 ## 🔍 Consultas de Exemplo
 <a id="consultas-de-exemplo"></a>
 
-> Ajuste nomes de tabelas/colunas conforme seu schema.
+> Ajuste nomes de colunas conforme seu client/visões.
 
-### Contratos ativos por período
+**Contratos ativos por período (exemplo conceitual)**  
 ```sql
 SELECT c.id, c.data_inicio, c.data_fim, l.nome AS locatario, i.codigo AS imovel
 FROM contrato c
@@ -120,7 +134,7 @@ WHERE c.data_inicio <= CURRENT_DATE
   AND (c.data_fim IS NULL OR c.data_fim >= CURRENT_DATE);
 ```
 
-### Inadimplência (pagamentos em atraso)
+**Inadimplência (pagamentos em atraso) — conceitual**  
 ```sql
 SELECT p.id, p.vencimento, p.valor, l.nome AS locatario
 FROM pagamento p
@@ -130,7 +144,7 @@ WHERE p.status = 'EM_ABERTO'
   AND p.vencimento < CURRENT_DATE;
 ```
 
-### Vacância de imóveis (sem contrato ativo)
+**Vacância de imóveis (sem contrato ativo) — conceitual**  
 ```sql
 SELECT i.id, i.codigo, i.tipo, i.cidade
 FROM imovel i
@@ -143,25 +157,25 @@ WHERE c.id IS NULL;
 
 ---
 
-## 🗺️ Roadmap Técnico
-<a id="roadmap-tecnico"></a>
+## 🗺️ Roadmap (inclui Multitenancy)
+<a id="roadmap-inclui-multitenancy"></a>
 
 - **v0.2**
   - Documentar entidades principais no README (tabelas e relações).
-  - Adicionar **seeds** básicos (`scripts/seed_exemplo.sql`).
-  - Criar **diagramas ER** (PNG/SVG) em `/docs/erd`.
+  - Adicionar **seeds** básicos (`sql/02_seed_minimo.sql`).
+  - Criar **diagramas ER** (PNG/SVG) em `docs/erd`.
 
 - **v0.3**
-  - Introduzir **`tenant_id`** e índices por tenant.
+  - Introduzir **tenant_id** e índices por tenant (em tabelas de domínio).
   - Adicionar **views** de relatórios: contratos ativos, inadimplência, vacância.
   - Configurar **GitHub Actions** para validar o schema (spin-up de DB + import DDL).
 
 - **v0.4**
-  - Criar **políticas de acesso** (RLS no Postgres) ou equivalente.
+  - Criar **políticas de acesso** (RLS equivalente no MySQL via views + filtros por usuário).
   - **Migrations** com **Flyway** ou **Liquibase**.
   - Publicar **Release v1.0** quando o modelo estabilizar.
 
-> **Topics sugeridos (GitHub):** `sql`, `database`, `er-diagram`, `saas`, `real-estate`, `multitenancy` (e o SGBD preferido: `postgresql` ou `mysql`).
+> **Topics sugeridos (GitHub):** `sql`, `database`, `er-diagram`, `saas`, `real-estate`, `multitenancy`, `mysql`.
 
 ---
 
@@ -174,7 +188,7 @@ WHERE c.id IS NULL;
 4. Push: `git push origin feat/minha-melhoria`  
 5. Abra um **Pull Request** com contexto e screenshots (se houver).
 
-> Sugestões bem-vindas: diagramas ER, seeds, views, índices, RLS, migrações.
+> Sugestões bem-vindas: diagramas ER, seeds, views, índices, políticas de acesso, migrações.
 
 ---
 
