@@ -9,229 +9,192 @@
 
 ```mermaid
 erDiagram
-  TIPO_ENDERECO ||--o{ ENDERECO : "classifica"
-  REGIAO        ||--o{ ESTADO   : "contém"
-  ESTADO        ||--o{ MUNICIPIO: "contém"
-  MUNICIPIO     ||--o{ BAIRRO   : "contém"
-
-  PROFISSOES ||--o{ PESSOA      : "exerce"
-  ENDERECO   ||--o{ PESSOA      : "reside_em"
-  MUNICIPIO  ||--o{ PESSOA      : "pertence"
-  CONTATO    ||--o{ PESSOA      : "referência"
-
-  CONTRUTORA       ||--o{ TIPO_IMOVEL : "oferta"
-  FINALIDADE_BUSCA ||--o{ TIPO_IMOVEL : "finalidade"
-  TIPO_IMOVEL      ||--o{ CONDICAO_IMOVEL : "tem"
-  TIPO_IMOVEL      ||--o{ SITUACAO_IMOVEL : "tem"
-  TIPO_IMOVEL      ||--o{ CARAC_IMOVEL    : "tem"
-  TIPO_IMOVEL      ||--o{ ACAB_IMOVEL     : "tem"
-  TIPO_IMOVEL      ||--o{ LOCALIZACAO     : "tem"
-
-  CONTATO         ||--o{ CONTATO_ORIGEM   : "origina"
-  ORIGEM_CONTATO  ||--o{ CONTATO_ORIGEM   : "classifica"
-
-  PESSOA     ||--o{ PESSOA_IDENTIFICA : "possui"
-  IDENTIFICA ||--o{ PESSOA_IDENTIFICA : "detalha"
-
-  PESSOA     ||--o{ IMOBILIARIA : "representa"
-  ENDERECO   ||--o{ IMOBILIARIA : "sede"
-  IDENTIFICA ||--o{ IMOBILIARIA : "doc"
-  CONTATO    ||--o{ IMOBILIARIA : "contato"
-
-  PERM_SYSTEM ||--o{ ACESSO_TIPO : "define"
-  ACESSO_TIPO ||--o{ ACESSOS     : "usa"
-  CONTATO     ||--o{ ACESSOS     : "dono"
-
-  PROFISSOES {
-    int id_prof PK
-    varchar nome_prof
+  regiao {
+    INT id PK
+    VARCHAR(50) nome
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  TIPO_ENDERECO {
-    int id_tipo_endereco PK
-    varchar tipo_endereco
+  estado {
+    INT id PK
+    INT codigo_uf
+    VARCHAR(50) nome
+    CHAR(2) uf
+    INT regiao_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  ENDERECO {
-    int id_endereco PK
-    int tipo_endereco_id_tipo_endereco PK, FK
-    varchar rua
-    varchar num
+  municipio {
+    INT id PK
+    INT codigo
+    VARCHAR(255) nome
+    INT estado_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  REGIAO {
-    int id PK
-    varchar nome
+  bairro {
+    INT id PK
+    CHAR(10) codigo
+    VARCHAR(255) nome
+    INT municipio_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  ESTADO {
-    int id PK
-    int regiao_id PK, FK
-    int codigoUf
-    varchar nome
-    char uf
+  tipo_endereco {
+    INT id PK
+    VARCHAR(45) descricao
   }
 
-  MUNICIPIO {
-    int id PK
-    int estado_id PK, FK
-    int estado_regiao_id PK, FK
-    int codigo
-    varchar nome
+  endereco {
+    INT id PK
+    VARCHAR(120) rua
+    VARCHAR(20) numero
+    VARCHAR(120) complemento
+    INT tipo_endereco_id FK
+    INT bairro_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  BAIRRO {
-    int id PK
-    int municipio_id PK, FK
-    int municipio_estado_id PK, FK
-    int municipio_estado_regiao_id PK, FK
-    char codigo
-    varchar nome
+  profissao {
+    INT id PK
+    VARCHAR(200) nome
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  CONTATO {
-    int id_contato PK
-    varchar contato
-    varchar email
+  contato {
+    INT id PK
+    VARCHAR(45) telefone
+    VARCHAR(45) email
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  PESSOA {
-    int id_pessoa PK
-    int profissoes_id_prof PK, FK
-    int endereco_id_endereco PK, FK
-    int endereco_tipo_endereco_id_tipo_endereco PK, FK
-    int municipio_id PK, FK
-    int municipio_estado_id PK, FK
-    int municipio_estado_regiao_id PK, FK
-    int contato_id_contato PK, FK
-    varchar nome
-    varchar sobrenome
-    varchar obs
-    varchar complemento
+  pessoa {
+    INT id PK
+    VARCHAR(80) nome
+    VARCHAR(120) sobrenome
+    VARCHAR(200) observacoes
+    INT profissao_id
+    INT endereco_id FK
+    INT municipio_id FK
+    INT contato_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  CONTRUTORA {
-    int id_contrutora PK
-    varchar nome_const
+  construtora {
+    INT id PK
+    VARCHAR(120) nome
   }
 
-  FINALIDADE_BUSCA {
-    int idfinalidade_busca PK
-    varchar desc_finalidade
+  finalidade_busca {
+    INT id PK
+    VARCHAR(45) descricao
   }
 
-  TIPO_IMOVEL {
-    int id_tipo_imovel PK
-    int contrutora_id_contrutora PK, FK
-    int finalidade_busca_idfinalidade_busca PK, FK
-    varchar desc
+  tipo_imovel {
+    INT id PK
+    VARCHAR(60) descricao
+    INT construtora_id FK
+    INT finalidade_busca_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  CONDICAO_IMOVEL {
-    int id_condicao_imovel PK
-    int tipo_imovel_id_tipo_imovel PK, FK
-    int tipo_imovel_contrutora_id_contrutora PK, FK
-    int tipo_imovel_finalidade_busca_idfinalidade_busca PK, FK
-    varchar desc_cond_imovel
+  localizacao {
+    INT id PK
+    VARCHAR(45) topografia
+    VARCHAR(45) posicao
+    VARCHAR(45) orientacao_solar
+    DOUBLE latitude
+    DOUBLE longitude
+    INT tipo_imovel_id FK
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  SITUACAO_IMOVEL {
-    int id_situacao_imovel PK
-    int tipo_imovel_id_tipo_imovel PK, FK
-    int tipo_imovel_contrutora_id_contrutora PK, FK
-    int tipo_imovel_finalidade_busca_idfinalidade_busca PK, FK
-    varchar desc_sit_imovel
+  contato_origem {
+    INT id PK
+    VARCHAR(45) origem
+    DATETIME created_at
+    DATETIME updated_at
   }
 
-  ORIGEM_CONTATO {
-    int id_origem_contato PK
-    varchar origem
+  contato_contato_origem {
+    INT contato_id FK
+    INT contato_origem_id FK
+    VARCHAR(45) tipo_contato
+    VARCHAR(45) tipo_fone
+    VARCHAR(45) nome_recado
+    PK "contato_id,contato_origem_id"
   }
 
-  IDENTIFICA {
-    int id_identifica PK
-    varchar rg
-    varchar creci
-    varchar dat_nasc
-    varchar cpf_cnpj
-    varchar insc_munic
+  permissao_sistema {
+    INT id PK
+    TINYINT leitura
+    TINYINT escrita
+    TINYINT gravacao
   }
 
-  IMOBILIARIA {
-    int idimobiliaria PK
-    int pessoa_id_pessoa PK, FK
-    int endereco_id_endereco PK, FK
-    int endereco_tipo_endereco_id_tipo_endereco PK, FK
-    int identifica_id_identifica PK, FK
-    int contato_id_contato PK, FK
-    varchar imobiliaria
-    varchar proprietario
+  acesso_tipo {
+    INT id PK
+    VARCHAR(45) nome
+    INT permissao_sistema_id FK
   }
 
-  CARAC_IMOVEL {
-    int id_carac_imovel PK
-    int tipo_imovel_id_tipo_imovel PK, FK
-    int tipo_imovel_contrutora_id_contrutora PK, FK
-    tinyint desc_carac_imovel
+  acessos {
+    INT id PK
+    VARCHAR(45) login
+    VARCHAR(255) senha
+    INT acesso_tipo_id FK
+    INT contato_id FK
   }
 
-  ACAB_IMOVEL {
-    int id_acab_imovel PK
-    int tipo_imovel_id_tipo_imovel PK, FK
-    int tipo_imovel_contrutora_id_contrutora PK, FK
-    varchar desc_acab_imovel
+  identificacao {
+    INT id PK
+    VARCHAR(45) rg
+    VARCHAR(45) creci
+    DATE data_nascimento
+    VARCHAR(45) cpf_cnpj
+    VARCHAR(45) inscricao_municipal
   }
 
-  CONTATO_ORIGEM {
-    int contato_id_contato PK, FK
-    int origem_contato_id_origem_contato PK, FK
-    varchar tipo_contato
-    varchar tipo_fone
-    varchar nome_recado
+  pessoa_identificacao {
+    INT pessoa_id FK
+    INT identificacao_id FK
+    VARCHAR(20) tipo_pessoa
+    VARCHAR(20) estado_civil
+    VARCHAR(120) conjuge
+    PK "pessoa_id,identificacao_id"
   }
 
-  PERM_SYSTEM {
-    int id_perm_system PK
-    tinyint leitura
-    tinyint escrita
-    tinyint gravacao
-  }
+  %% Relações
+  estado }o--|| regiao : "regiao_id"
+  municipio }o--|| estado : "estado_id"
+  bairro }o--|| municipio : "municipio_id"
+  endereco }o--|| tipo_endereco : "tipo_endereco_id"
+  endereco }o--|| bairro : "bairro_id"
+  pessoa }o--|| endereco : "endereco_id"
+  pessoa }o--|| municipio : "municipio_id"
+  pessoa }o--o| profissao : "profissao_id"
+  pessoa }o--|| contato : "contato_id"
+  tipo_imovel }o--|| construtora : "construtora_id"
+  tipo_imovel }o--|| finalidade_busca : "finalidade_busca_id"
+  localizacao }o--|| tipo_imovel : "tipo_imovel_id"
+  contato_contato_origem }o--|| contato : "contato_id"
+  contato_contato_origem }o--|| contato_origem : "contato_origem_id"
+  acesso_tipo }o--|| permissao_sistema : "permissao_sistema_id"
+  acessos }o--|| acesso_tipo : "acesso_tipo_id"
+  acessos }o--|| contato : "contato_id"
+  pessoa_identificacao }o--|| pessoa : "pessoa_id"
+  pessoa_identificacao }o--|| identificacao : "identificacao_id"
 
-  ACESSO_TIPO {
-    int id_acesso_tipo PK
-    int perm_system_id_perm_system PK, FK
-    varchar acesso
-  }
-
-  ACESSOS {
-    int id_acessos PK
-    int acesso_tipo_id_acesso_tipo PK, FK
-    int acesso_tipo_perm_system_id_perm_system PK, FK
-    int contato_id_contato PK, FK
-    varchar login
-    varchar senha
-  }
-
-  PESSOA_IDENTIFICA {
-    int pessoa_id_pessoa PK, FK
-    int pessoa_profissoes_id_prof PK, FK
-    int identifica_id_identifica PK, FK
-    varchar tipo_pessoa
-    varchar est_civil
-    varchar conjuge
-  }
-
-  LOCALIZACAO {
-    int id_localizaca PK
-    int tipo_imovel_id_tipo_imovel PK, FK
-    int tipo_imovel_contrutora_id_contrutora PK, FK
-    int tipo_imovel_finalidade_busca_idfinalidade_busca PK, FK
-    varchar topografia
-    varchar posicao
-    varchar orien_solar
-    varchar latitude
-    varchar logintude
-  }
 ```
   
 ---
